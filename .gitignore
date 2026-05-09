@@ -43,3 +43,9 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# AI Skills
+.ai/
+.claude/
+.agent/
+.agents/

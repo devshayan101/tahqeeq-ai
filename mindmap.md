@@ -1,0 +1,54 @@
+# Tahqeeq AI Codebase Mindmap
+
+- **Root**
+  - **Configuration**
+    - `package.json`: Project dependencies and scripts (Next.js, Genkit, Firebase).
+    - `tailwind.config.ts` & `postcss.config.mjs`: Styling configuration.
+    - `next.config.ts`: Next.js application settings.
+    - `tsconfig.json`: TypeScript configuration.
+    - `bun.lock`: Dependency lockfile.
+    - `.env`: Environment variables (API keys, Firebase config).
+  - **Documentation**
+    - `README.md`: Project overview and setup instructions.
+    - `AGENTS.md`: Rules and guidelines for AI agents.
+    - `CLAUDE.md`: Claude-specific instructions (if any).
+    - `mindmap.md`: (This file) Visual structure of the codebase.
+    - `working.md`: Technical explanation of how the system functions.
+  - **Source Code (`src/`)**
+    - **AI (`ai/`)**: Core AI logic using Google Genkit.
+      - `genkit.ts`: Initialization of Genkit with Google AI plugin (Gemini 2.0 Flash).
+      - `dev.ts`: Genkit development server entry point.
+      - **Flows (`flows/`)**: Specialized AI pipelines.
+        - `tahqeeq-chat-flow.ts`: Main research chat logic (Scholar/Student modes, multi-language).
+        - `intelligent-search.ts`: Search logic for Islamic content.
+        - `summarize-document.ts`: Document summarization logic.
+    - **App Router (`app/`)**: Next.js pages and layouts.
+      - `layout.tsx`: Root layout with context providers.
+      - `page.tsx`: Home page (Chat interface).
+      - `chat/`: Dedicated chat views.
+      - `quran/` & `ar-quran/`: Quranic browsing and reading.
+      - `hadith/`: Prophetic traditions library.
+      - `tafsir/`: Quranic interpretations.
+      - `fiqh/`: Islamic jurisprudence.
+      - `documents/`: Virtual library / Document management.
+      - `audio/`: Audio library for recitations/lectures.
+      - `bookmarks/`: User saved items and notes.
+      - `search/`: Global intelligent search.
+      - `auth/`: Authentication pages (Login/Signup).
+      - `profile/`, `settings/`, `about/`, `history/`, `community/`, `learn/`, `calendar/`, `routine/`: Additional feature modules.
+    - **Components (`components/`)**: Reusable UI components.
+      - Shadcn/UI components (Accordion, Dialog, Tabs, etc.).
+      - Custom app-specific components.
+    - **Config (`config/`)**: Global application settings.
+      - `site.ts`: Navigation links, site metadata.
+    - **Contexts (`contexts/`)**: Global state management.
+      - `auth-context.tsx`: Firebase authentication state.
+      - `chat-context.tsx`: AI chat history and session management.
+      - `language-context.tsx`: Multi-lingual translation state.
+      - `theme-provider.tsx`: Dark/Light mode management.
+    - **Lib (`lib/`)**: Core utilities and service integrations.
+      - `firebase.ts`: Firebase client initialization (Auth, Firestore).
+      - `translations.ts`: Localization strings for various languages.
+      - `utils.ts`: Small helper functions (Tailwind merge, etc.).
+    - **Types (`types/`)**: Shared TypeScript interfaces and types.
+      - `nav.d.ts`: Navigation structure types.

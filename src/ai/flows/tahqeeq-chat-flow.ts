@@ -11,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { queryRagForge } from '@/lib/ragforge';
 
 const ChatReferenceSchema = z.object({
   book: z.string().describe("Name of the book cited."),
@@ -114,13 +115,21 @@ const chatPrompt = ai.definePrompt({
     const effectiveQueryLanguageHint = input.queryLanguageHint || 'unknown';
 
     if (input.mode === 'scholar') {
-      return scholarPromptTemplate
-        .replace('{{{queryLanguageHint}}}', effectiveQueryLanguageHint)
-        .replace('{{{query}}}', input.query);
+      return [
+        {
+          text: scholarPromptTemplate
+            .replace('{{{queryLanguageHint}}}', effectiveQueryLanguageHint)
+            .replace('{{{query}}}', input.query),
+        },
+      ];
     }
-    return studentPromptTemplate
-        .replace('{{{queryLanguageHint}}}', effectiveQueryLanguageHint)
-        .replace('{{{query}}}', input.query);
+    return [
+      {
+        text: studentPromptTemplate
+          .replace('{{{queryLanguageHint}}}', effectiveQueryLanguageHint)
+          .replace('{{{query}}}', input.query),
+      },
+    ];
   },
   config: {
     safetySettings: [
@@ -139,6 +148,46 @@ const tahqeeqChatFlow = ai.defineFlow(
     outputSchema: TahqeeqChatOutputSchema,
   },
   async (input) => {
+    const ragApiKey = process.env.RAGFORGE_API_KEY;
+    const ragVersionId = process.env.RAGFORGE_VERSION_ID ? parseInt(process.env.RAGFORGE_VERSION_ID) : undefined;
+
+    if (ragApiKey && ragVersionId) {
+      try {
+        console.log(`ChatProvider: Using RagForge for query: "${input.query}" (Version: ${ragVersionId})`);
+        
+        // Detect language locally for UI consistency
+        let detectedLanguage = input.queryLanguageHint || 'en';
+        if (/[ء-ي]/.test(input.query)) detectedLanguage = 'ar';
+        else if (/[\u0600-\u06FF]/.test(input.query)) detectedLanguage = 'ur';
+        
+        // Prepare system prompt for RagForge
+        const systemPromptTemplate = input.mode === 'scholar' ? scholarPromptTemplate : studentPromptTemplate;
+        const finalSystemPrompt = systemPromptTemplate
+          .replace('{{{queryLanguageHint}}}', detectedLanguage)
+          .replace('User\'s query: {{{query}}}', ""); // Remove this as RagForge adds it in user message
+
+        const ragResult = await queryRagForge({
+          versionId: ragVersionId,
+          message: input.query,
+          systemPrompt: finalSystemPrompt
+        });
+
+        return {
+          answer: ragResult.response,
+          references: (ragResult.sources || []).map(s => ({
+            book: s.documentName,
+            page: (s.pageNo || 0).toString(),
+            otherDetails: (s.text || "").substring(0, 100) + "..."
+          })),
+          modeUsed: input.mode,
+          detectedQueryLanguage: detectedLanguage
+        };
+      } catch (error) {
+        console.error("RagForge integration error:", error);
+        // Fallback to normal flow if RagForge fails
+      }
+    }
+
     const {output} = await chatPrompt(input);
     
     return {
