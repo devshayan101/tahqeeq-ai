@@ -150,6 +150,7 @@ const tahqeeqChatFlow = ai.defineFlow(
   async (input) => {
     const ragApiKey = process.env.RAGFORGE_API_KEY;
     const ragVersionId = process.env.RAGFORGE_VERSION_ID ? parseInt(process.env.RAGFORGE_VERSION_ID) : undefined;
+    const disableGenkit = process.env.DISABLE_GENKIT === 'true';
 
     if (ragApiKey && ragVersionId) {
       try {
@@ -184,10 +185,26 @@ const tahqeeqChatFlow = ai.defineFlow(
         };
       } catch (error) {
         console.error("RagForge integration error:", error);
-        // Fallback to normal flow if RagForge fails
+        if (disableGenkit) {
+          return {
+            answer: "<strong>Error:</strong> RagForge query failed and Genkit is disabled. Please check your configuration or try again later.",
+            references: [],
+            modeUsed: input.mode,
+            detectedQueryLanguage: input.queryLanguageHint || 'en'
+          };
+        }
+        // Fallback to normal flow if RagForge fails and Genkit is NOT disabled
       }
+    } else if (disableGenkit) {
+      return {
+        answer: "<strong>Error:</strong> RagForge is not configured (missing API Key or Version ID) and Genkit is disabled.",
+        references: [],
+        modeUsed: input.mode,
+        detectedQueryLanguage: input.queryLanguageHint || 'en'
+      };
     }
 
+    // If we reach here, either RagForge is not configured or it failed, AND Genkit is NOT disabled.
     const {output} = await chatPrompt(input);
     
     return {

@@ -64,6 +64,11 @@ const intelligentSearchFlow = ai.defineFlow(
     outputSchema: IntelligentSearchOutputSchema,
   },
   async input => {
+    if (process.env.DISABLE_GENKIT === 'true') {
+      return {
+        results: []
+      };
+    }
     const {output} = await intelligentSearchPrompt(input);
     return output!;
   }

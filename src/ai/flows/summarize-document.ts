@@ -41,6 +41,11 @@ const summarizeDocumentFlow = ai.defineFlow(
     outputSchema: SummarizeDocumentOutputSchema,
   },
   async input => {
+    if (process.env.DISABLE_GENKIT === 'true') {
+      return {
+        summary: "Genkit is currently disabled. Summarization is unavailable."
+      };
+    }
     const {output} = await prompt(input);
     return output!;
   }
