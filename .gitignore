@@ -49,3 +49,4 @@ firestore-debug.log
 .claude/
 .agent/
 .agents/
+/scratch/
