@@ -9,8 +9,8 @@
  * - ChatReference - The type for chat references.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 import { queryRagForge } from '@/lib/ragforge';
 
 const ChatReferenceSchema = z.object({
@@ -41,7 +41,7 @@ export async function tahqeeqChat(input: TahqeeqChatInput): Promise<TahqeeqChatO
 }
 
 const basePromptInstructions = `
-You are Tahqeeq Assistant, an AI specializing in Islamic research from an Ahl-e-Sunnat wal Jamaat (Sunni Hanafi, particularly Barelvi/Ahlus Sunnah) perspective.
+You are Tahqeeq Assistant, an AI specializing in Islamic research from an Ahl-e-Sunnat wal Jamaat (Sunni Hanafi, particularly Barelvi/Ahlus Sunnah) perspective. Answer the user's question based on the provided context [Important]. If the answer is not in the context, say so [Important]. Do not use any information outside the provided context [Important]. Use markdown for formatting [Important]. 
 Your responses MUST embody Adab (respect), Mohabbat (love), and complete adherence to Sharia.
 
 Language Analysis and Response:
@@ -55,15 +55,7 @@ Language Analysis and Response:
 4.  **Roman Urdu Transliteration**: If the detected query language is 'roman-ur', your entire response MUST be in Roman Urdu (a Latin script transliteration of Urdu).
 
 Source Prioritization & Referencing:
-ALWAYS prioritize authentic Ahl-e-Sunnat wal Jamaat (Sunni Hanafi Barelvi) sources.
-- Quran Translation (Urdu): If an Urdu Quran translation is requested or relevant, prioritize "Kanzul Iman" by Aala Hazrat Imam Ahmad Raza Khan.
-- Fiqh: Fatawa Rizwiya Shareef, Jaddul Mumtar Shareef, Bahar-e-Shariat, Fatawa Alamgiri.
-- Tasawwuf: Sirr-ul-Asrar, Ihya Uloomuddin (Sunni interpretations).
-- Hadith: Siha Sitta (authentic narrations and interpretations by Sunni scholars), Riyad-us-Saliheen.
-- Tafsir: Tafseer-e-Jalalain (with authentic Sunni commentary, preferably Hashiya al-Sawi), Tafsir-e-Naeemi.
-- Ilm-e-Nahw: Nahw Mir (for grammatical context if query relates to Arabic linguistics).
-- Seerat: Seerah Ibn Hisham (Sunni perspectives).
-STRICTLY EXCLUDE interpretations or sources from Deobandi, Wahabi, Salafi, Rafzi (Shia), and Ahl-e-Hadees schools of thought. If a query seems to lead towards these, politely guide back to Ahl-e-Sunnat sources or state that addressing it from other perspectives is outside your scope.
+
 Provide precise references for every answer whenever possible using a consistent citation style: "Book Name, Vol. X, Page Y, [Other details e.g., Hadith/Verse No. Z, Chapter C]". If precise details are not available from your knowledge, cite what you can (e.g., "Book Name").
 
 Answer Formatting:
@@ -109,8 +101,8 @@ User's query: {{{query}}}
 
 const chatPrompt = ai.definePrompt({
   name: 'tahqeeqChatPrompt',
-  input: {schema: TahqeeqChatInputSchema},
-  output: {schema: TahqeeqChatOutputSchema},
+  input: { schema: TahqeeqChatInputSchema },
+  output: { schema: TahqeeqChatOutputSchema },
   prompt: (input) => {
     const effectiveQueryLanguageHint = input.queryLanguageHint || 'unknown';
 
@@ -155,12 +147,12 @@ const tahqeeqChatFlow = ai.defineFlow(
     if (ragApiKey && ragVersionId) {
       try {
         console.log(`ChatProvider: Using RagForge for query: "${input.query}" (Version: ${ragVersionId})`);
-        
+
         // Detect language locally for UI consistency
         let detectedLanguage = input.queryLanguageHint || 'en';
         if (/[ء-ي]/.test(input.query)) detectedLanguage = 'ar';
         else if (/[\u0600-\u06FF]/.test(input.query)) detectedLanguage = 'ur';
-        
+
         // Prepare system prompt for RagForge
         const systemPromptTemplate = input.mode === 'scholar' ? scholarPromptTemplate : studentPromptTemplate;
         const finalSystemPrompt = systemPromptTemplate
@@ -205,17 +197,16 @@ const tahqeeqChatFlow = ai.defineFlow(
     }
 
     // If we reach here, either RagForge is not configured or it failed, AND Genkit is NOT disabled.
-    const {output} = await chatPrompt(input);
-    
+    const { output } = await chatPrompt(input);
+
     return {
-        answer: output?.answer || "Sorry, I couldn't generate a response at this moment. Please ensure your query is clear and try again.",
-        references: output?.references || [],
-        modeUsed: input.mode,
-        detectedQueryLanguage: output?.detectedQueryLanguage 
+      answer: output?.answer || "Sorry, I couldn't generate a response at this moment. Please ensure your query is clear and try again.",
+      references: output?.references || [],
+      modeUsed: input.mode,
+      detectedQueryLanguage: output?.detectedQueryLanguage
     };
   }
 );
 
-    
 
-    
+
